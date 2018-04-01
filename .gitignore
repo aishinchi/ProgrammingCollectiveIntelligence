@@ -101,3 +101,11 @@ ENV/
 *.iml
 *.xml
 *.xml
+*.zip
+*.csv
+*.pl
+*.sh
+*.data
+*.genre
+*.occupation
+ /moviesdata/
