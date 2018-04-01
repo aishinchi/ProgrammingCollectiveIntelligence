@@ -20,7 +20,7 @@ critics = {'Lisa Rose': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5,
            'Toby': {'Snakes on a Plane': 4.5, 'You, Me and Dupree': 1.0, 'Superman Returns': 4.0}}
 
 #欧几里德距离计算相似度
-def EuclideanDistanceScore(critics, person1, person2):
+def euclideanDistanceScore(critics, person1, person2):
     si = {}
     #搜集两人共同评价过的电影
     for item in critics[person1]:
@@ -36,7 +36,7 @@ def EuclideanDistanceScore(critics, person1, person2):
     return sim
 
 #皮尔逊相关度评价
-def PearsonCorrelationScore(critics, person1, person2):
+def pearsonCorrelationScore(critics, person1, person2):
     si = {}
     for item in critics[person1]:
         if item in critics[person2]:
@@ -64,7 +64,108 @@ def PearsonCorrelationScore(critics, person1, person2):
     pearson = cov / variance
     return pearson
 
+#基于固定数目的邻居
+def topMatches(critics, person, n, similarity):
+    #从字典中计算每一个与指定目标的相似度，并存入列表中。
+    #n为指定相似度的前n个人，similarity是选择的相似度评价准则
+    scores = [(similarity(critics, person, other), other) for other in critics if other != person]
 
-print(EuclideanDistanceScore(critics, 'Lisa Rose', 'Gene Seymour'))
+    scores.sort()
+    scores.reverse()
+    return scores[:n]
 
-print(PearsonCorrelationScore(critics, 'Lisa Rose', 'Gene Seymour'))
+#基于相似度门槛的邻居
+def thresholdMatches(critics, person, threshold, similarity):
+    #threshold是设定的相关度门限
+    #因为下面需要索引相似度值，所以将()改为内嵌的列表
+    scores = [[similarity(critics, person, other), other] for other in critics if other != person]
+
+    scores.sort()
+    scores.reverse()
+
+    thresholdScores = []
+    for i in range(len(scores)):
+        if scores[i][0] >= threshold:
+            thresholdScores.append(scores[i])
+
+    return thresholdScores
+
+#推荐物品
+def getRecommendations(critics, person, similarity):
+    totals = {}
+    simSum = {}
+
+    for other in critics:
+        if other != person:
+            sim = similarity(critics, person, other)
+
+        #忽略评价值为0或者小于零的情况
+        if sim <= 0:
+            continue
+
+        for item in critics[other]:
+
+            #只选择指定目标未看过的电影
+            if item not in critics[person] or critics[person][item] == 0:
+                totals.setdefault(item, 0)
+                #计算加权评价值之和，加权评价值 = 评价值*相似度
+                totals[item] += critics[other][item] * sim
+
+                #计算相似度之和
+                simSum.setdefault(item, 0)
+                simSum[item] += sim
+
+    #建立归一化的列表
+    rankings = [(total / simSum[item], item) for item, total in totals.items()]
+
+    rankings.sort()
+    rankings.reverse()
+    return rankings
+
+def transformPrefs(critics):
+    result = {}
+    #统计有多少个物品
+    for person in critics:
+        for item in critics[person]:
+            result.setdefault(item, {})
+            #将物品和人员对调
+            result[item][person] = critics[person][item]
+    return result
+
+#用来加载下载的数据
+def loadMoviesLens(path = './moviesdata'):
+
+    #获取影片的标题
+    movies = {}
+    #Python2 和 Python3差别很大，书上的原程序读文件显示错误，可能是文件中含特殊的中文或者无法识别的文字，必须改变编码形式忽略错误编码
+    for line in open(path + '/u.item', 'r', encoding='gb18030', errors='ignore'):
+        (id, title) = line.split('|')[0:2]
+        movies[id] = title
+
+    #加载数据
+    prefs = {}
+    for line in open(path + '/u.data'):
+        (user, movieid, rating, ts) = line.split('\t')
+        prefs.setdefault(user, {})
+        prefs[user][movies[movieid]] = float(rating)
+    return prefs
+
+prefs = loadMoviesLens()
+print(prefs['87'])
+print(getRecommendations(prefs, '87', pearsonCorrelationScore)[0:30])
+# print(euclideanDistanceScore(critics, 'Lisa Rose', 'Gene Seymour'))
+#
+# print(pearsonCorrelationScore(critics, 'Lisa Rose', 'Gene Seymour'))
+#
+# print(topMatches(critics, 'Lisa Rose', 5, pearsonCorrelationScore))
+#
+# print(thresholdMatches(critics, 'Lisa Rose', 0.5, pearsonCorrelationScore))
+#
+# print(getRecommendations(critics, 'Toby', pearsonCorrelationScore))
+#
+# print(transformPrefs(critics))
+#
+# moives = transformPrefs(critics)
+# print(topMatches(moives, 'You, Me and Dupree', 5, pearsonCorrelationScore))
+#
+# print(getRecommendations(moives, 'Superman Returns', pearsonCorrelationScore))
