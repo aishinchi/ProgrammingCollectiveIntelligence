@@ -116,3 +116,17 @@ ENV/
 *.info
 moviesdata/README
 ml-latest-small/README.txt
+DiscoveringGroups/feedparser/__init__.py
+DiscoveringGroups/feedparser/datetimes/__init__.py
+DiscoveringGroups/feedparser/namespaces/admin.py
+DiscoveringGroups/feedparser/parsers/strict.py
+DiscoveringGroups/feedparser/sgml.py
+DiscoveringGroups/feedparser/urls.py
+DiscoveringGroups/feedparser/namespaces/itunes.py
+DiscoveringGroups/feedparser/util.py
+*.xml___jb_tmp___
+DiscoveringGroups/feedparser/
+DiscoveringGroups/feedparser-5.2.1/
+DiscoveringGroups/feedlist.txt
+DiscoveringGroups/feedlist2.txt
+DiscoveringGroups/test.py
