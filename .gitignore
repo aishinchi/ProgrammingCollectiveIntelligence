@@ -109,3 +109,10 @@ ENV/
 *.genre
 *.occupation
  /moviesdata/
+*.test
+*.base
+*.user
+*.item
+*.info
+moviesdata/README
+ml-latest-small/README.txt
